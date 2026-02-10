@@ -6,24 +6,30 @@
  // commands for an ”include guard” and are types of compiler directive.
  // The include guard contains an ID for this file ”MATHSLIBADDERH”, this is
  // arbitrary but must be unique within the project.
-#ifndef MATHSLIB_ADDER_H
+#ifndef MATHSLIB_ADDER_H  // 1. 改为 ifndef
 #define MATHSLIB_ADDER_H
 
-#ifdef maths_EXPORTS
+// 2. 简化导出/导入逻辑
+#if defined(WIN32) || defined(_WIN32)
+#ifdef mathsEXPORTS  // 3. 确保和命令行 /D 后的名称一致
 #define MATHSLIB_API __declspec(dllexport)
 #else
 #define MATHSLIB_API __declspec(dllimport)
 #endif
-
-// 必须有这个宏，否则不会生成 .lib 文件
-MATHSLIB_API int add(int a, int b);
-
+#else
+#define MATHSLIB_API // 非 Windows 平台设为空
 #endif
-#ifndef MATHSLIBADDERH
- #define MATHSLIBADDERH
 
- // prototype for our function
- int add(int a, int b);
+// 4. 函数声明
+#ifdef __cplusplus
+extern "C" {  // 建议加上 extern "C"，防止 C++ 编译时函数名被混淆（Name Mangling）
+#endif
+
+    MATHSLIB_API int add(int a, int b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
  //end=adder.h========== =
