@@ -1,0 +1,4 @@
+﻿  Building Custom Rule C:/Users/33545/Desktop/2025_eeyxc7/Worksheet4/Calc_dynamic/CMakeLists.txt
+  calc.cpp
+C:\Users\33545\Desktop\2025_eeyxc7\Worksheet4\Calc_dynamic\adder.h(26,6): warning C4273: “add”: dll 链接不一致
+  calc.vcxproj -> C:\Users\33545\Desktop\2025_eeyxc7\Worksheet4\Calc_dynamic\build\Debug\calc.exe
