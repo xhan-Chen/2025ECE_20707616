@@ -1,7 +1,7 @@
 // begin =hello.cpp========== =
 #include <iostream>
  int main(int argc, char *argv[]) {
-	std::cout << "Hello Planet Earth!" << std::endl;
+	std::cout << "Hello World!" << std::endl;
 	return 0;
 	
 }

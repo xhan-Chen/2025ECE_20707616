@@ -1,4 +1,5 @@
  # calc cmake/CMakeLists.txt
+
  cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
  project ( calc )
 
