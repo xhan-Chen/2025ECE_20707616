@@ -147,3 +147,14 @@ vtkActor* ModelPart::getNewActor() {
 
     return vrActor;
 }
+
+void ModelPart::removeChild(int row) {
+    if (row >= 0 && row < m_childItems.size()) {
+        // 1. 从 QList 中移除该指针并获取它
+        ModelPart* item = m_childItems.takeAt(row);
+
+        // 2. 物理删除内存
+        // 这会触发 ModelPart 的析构函数，从而递归删除它下面的所有子项
+        delete item;
+    }
+}

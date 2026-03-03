@@ -28,7 +28,8 @@ public slots:
     void handleTreeClicked();
     void on_actionOpen_File_triggered();
     void on_actionItemOptions_triggered();
-
+void on_actionAdd_Item_triggered();
+    void on_actionDelete_Item_triggered();
 signals:
     void statusUpdateMessage(const QString & message, int timeout);
 

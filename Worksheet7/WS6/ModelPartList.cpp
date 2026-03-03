@@ -119,28 +119,47 @@ ModelPart* ModelPartList::getRootItem() {
 
 
 
-QModelIndex ModelPartList::appendChild(QModelIndex& parent, const QList<QVariant>& data) {      
+QModelIndex ModelPartList::appendChild(QModelIndex& parent, const QList<QVariant>& data) {
     ModelPart* parentPart;
-
     if (parent.isValid())
         parentPart = static_cast<ModelPart*>(parent.internalPointer());
-    else {
+    else
         parentPart = rootItem;
-        parent = createIndex(0, 0, rootItem );
-    }
 
-    beginInsertRows( parent, rowCount(parent), rowCount(parent) ); 
+    // 获取新项将要插入的行号
+    int newRow = parentPart->childCount();
 
-    ModelPart* childPart = new ModelPart( data, parentPart );
+    beginInsertRows(parent, newRow, newRow);
 
+    ModelPart* childPart = new ModelPart(data, parentPart);
     parentPart->appendChild(childPart);
 
-    QModelIndex child = createIndex(0, 0, childPart);
+    // 使用正确的行号创建索引
+    QModelIndex child = createIndex(newRow, 0, childPart);
 
     endInsertRows();
-
-    emit layoutChanged();
-
+    // emit layoutChanged(); // 有了 begin/endInsertRows，通常不需要调用这个，调用它反而会重置树的状态
     return child;
 }
 
+bool ModelPartList::removePart(const QModelIndex& index) {
+    if (!index.isValid())
+        return false;
+
+    ModelPart* item = static_cast<ModelPart*>(index.internalPointer());
+    ModelPart* parentItem = item->parentItem();
+
+    if (!parentItem) return false;
+
+    int row = index.row();
+
+    // 通知视图模型：我们要删除 index.parent() 下的第 row 行
+    beginRemoveRows(index.parent(), row, row);
+
+    // --- 核心修复：不要直接 delete item ---
+    // 调用父节点的移除函数，确保指针从父节点的 QList 中被真正删掉
+    parentItem->removeChild(row);
+
+    endRemoveRows();
+    return true;
+}

@@ -22,7 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeView->addAction(ui->actionItemOptions);
     ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-
+    // 在 MainWindow::MainWindow 中
+    ui->treeView->addAction(ui->actionAdd_Item); // 添加 Action
+    ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu); // 确保右键菜单策略已开启
+ui->treeView->addAction(ui->actionDelete_Item);
     /*Create / allocate the ModelList */
     this->partList =new ModelPartList("PartsList");
     /*Link it to the treeview in the GUI */
@@ -101,13 +104,26 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow:: handleButton() {
-    /*
-    QMessageBox msgBox;
-    msgBox. setText("Add button was clicked") ;
-    msgBox. exec () ;
-*/
-    emit statusUpdateMessage( QString("Add button was clicked") , 0 );
+void MainWindow::handleButton() {
+    // 1. 获取当前 TreeView 中选中的索引
+    QModelIndex index = ui->treeView->currentIndex();
+
+    // 2. 准备新节点的数据（默认名称和可见性）
+    QList<QVariant> newData;
+    newData << "New Part" << "Visible";
+
+    // 3. 调用你的 ModelPartList::appendChild 方法
+    // 注意：如果 index 无效（未选中），你的代码会自动将其添加到 rootItem 下
+    QModelIndex newChildIndex = partList->appendChild(index, newData);
+
+    // 4. 提升用户体验：自动展开父节点并选中新节点
+    if (newChildIndex.isValid()) {
+        ui->treeView->expand(index); // 展开父节点以便看到新项
+        ui->treeView->setCurrentIndex(newChildIndex); // 选中新创建的项
+    }
+
+    emit statusUpdateMessage(QString("Added new child to ") +
+                                 (index.isValid() ? static_cast<ModelPart*>(index.internalPointer())->data(0).toString() : "Root"), 0);
 }
 void MainWindow:: handleTreeClicked() {
     /* Get the index of the selected item */
@@ -223,4 +239,48 @@ void MainWindow::updateRenderFromTree(const QModelIndex& index) {
     }
 }
 
+void MainWindow::on_actionAdd_Item_triggered() {
+    // 1. 获取当前选中的索引
+    QModelIndex index = ui->treeView->currentIndex();
 
+    // 2. 准备默认数据
+    QList<QVariant> newData;
+    newData << "New Sub-Part" << "true";
+
+    // 3. 调用 ModelPartList 的 appendChild
+    // 如果 index 无效（未选中），你的代码会自动添加到根节点下
+    QModelIndex newChildIndex = partList->appendChild(index, newData);
+
+    // 4. 交互优化：自动展开并选中新项
+    if (newChildIndex.isValid()) {
+        ui->treeView->expand(index); // 展开当前选中的父项
+        ui->treeView->setCurrentIndex(newChildIndex); // 选中新创建的子项
+    }
+
+    emit statusUpdateMessage(tr("Added new child item."), 0);
+}
+
+void MainWindow::on_actionDelete_Item_triggered() {
+    QModelIndex index = ui->treeView->currentIndex();
+    if (!index.isValid()) {
+        emit statusUpdateMessage("Warning: No item selected for deletion", 0);
+        return;
+    }
+
+    ModelPart* selectedPart = static_cast<ModelPart*>(index.internalPointer());
+    QString name = selectedPart->data(0).toString();
+
+    // 确认对话框
+    auto reply = QMessageBox::question(this, "Delete Confirmation",
+                                       QString("Are you sure you want to delete '%1' and all its children?").arg(name),
+                                       QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        // 执行模型层的删除
+        if (partList->removePart(index)) {
+            // 关键：删除后必须刷新渲染器
+            updateRender();
+            emit statusUpdateMessage(QString("Item '%1' deleted.").arg(name), 0);
+        }
+    }
+}

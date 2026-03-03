@@ -38,7 +38,7 @@ public:
     unsigned char getColourR();
     unsigned char getColourG();
     unsigned char getColourB();
-
+void removeChild(int row);
     void setVisible(bool isVisible);
     bool visible();
 
