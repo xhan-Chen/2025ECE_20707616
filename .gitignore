@@ -19,5 +19,4 @@ out/
 icons/
 *.ui
 *.qrc
-*.json
-*.txt
+
